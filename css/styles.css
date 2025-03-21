@@ -1,0 +1,78 @@
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 5px 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: #eee;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  #game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #333;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #000;
+  }
+  
+  #game-map {
+    display: none;
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: #f9f9f9;
+  }
+  
+  #room-count {
+    width: 150px;
+    height: 20px;
+    font-size: small;
+  }
+  
+  button {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background: #558;
+    color: #fff;
+  }
+  
+  button:hover:not([disabled]) {
+    background: #77a;
+  }
+  
+  button:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+  
+  #room-word {
+    margin: 20px;
+    font-size: 1.5em;
+    color: #333;
+  }
+  
+  #collected-words {
+    margin-top: 20px;
+    font-size: 1.2em;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+  }
+  
+  #final-puzzle {
+    margin-top: 20px;
+    padding: 10px;
+    border: 2px dashed #666;
+  }

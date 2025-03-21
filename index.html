@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NP-Complete Escape Room Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="game-container">
+    <h1>Escape Room Game</h1>
+    <div id="game-output">
+      <p>Welcome! Click "Start Game" to begin your escape.</p>
+      <div id="game-map"></div>
+    </div>
+    
+    <div id="controls">
+      <input type="number" id="room-count" min="1" max="25" placeholder="Enter number of rooms">
+      <button id="btn-start">Start Game</button>
+      <button id="btn-next-room" style="display: none;">Enter Next Room</button>
+      <button id="btn-restart" style="display: none;">Restart Game</button>
+    </div>
+  </div>
+
+  <!-- Main JavaScript entry point -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
