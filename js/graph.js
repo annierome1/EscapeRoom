@@ -4,7 +4,7 @@ import { CFG } from "./cfg.js"; // Ensure correct import
 // ===============================
 // The graph is constructed with a guaranteed Hamiltonian path (rooms 0 to n-1) and extra random edges,
 // simulating the NP-hard characteristics as discussed in Sara (n.d.) and Mayer & Wünch (2017).
-class Graph {
+export class Graph {
   constructor(numRooms) {
     this.numRooms = numRooms;
     this.rooms = {};   // Room details
@@ -20,7 +20,13 @@ class Graph {
     for (let i = 0; i < this.numRooms; i++) {
       this.rooms[i] = {
         id: i,
-        description: this.cfg.generate()
+        description: this.cfg.generate(),
+        key: {
+          id: i,
+          symbol: `Key of Room ${i}`,
+          color: this.randomColor(),
+          collected: false
+        }
       };
       this.edges[i] = [];
     }
@@ -49,5 +55,17 @@ class Graph {
       }
     }
   }
+  randomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
+  getHamiltonianPath() {
+    return [...this.solutionPath];
+  }
 }
-export { Graph };
+
