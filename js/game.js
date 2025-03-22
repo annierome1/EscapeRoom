@@ -1,6 +1,7 @@
 import { Graph } from "./graph.js";
 import { PDA } from "./pda.js";
 import { drawMap } from "./ui.js";
+import { LockPuzzle } from "./lock.js";
 // ========================
 // Main Game Implementation
 // ========================
@@ -16,6 +17,8 @@ class Game {
       this.visited = new Set();
       this.visited.add(this.currentRoom);
       this.gameOver = false;
+      this.lockPuzzle = new LockPuzzle(this.graph.getHamiltonianPath());
+      this.lockPuzzle.collectKey(this.currentRoom);
     }
     start() {
       const mapContainer = document.getElementById("game-map");
@@ -25,8 +28,20 @@ class Game {
     renderRoom() {
       const room = this.graph.rooms[this.currentRoom];
       const outputDiv = document.getElementById("game-output");
-      outputDiv.innerHTML = `<p>${room.description}</p>
-      <div id = "game-map" style = "display: block;"></div>`;
+      outputDiv.innerHTML = `<p>${room.description}</p><div id = "game-map" style = "display: block;"></div>`;
+      if (!this.lockPuzzle.keysCollected.has(this.currentRoom)) {
+        outputDiv.innerHTML += `
+          <p><strong>You found a key:</strong> <span style="color: gold;">${room.key.symbol}</span></p>
+        `;
+      } else {
+        outputDiv.innerHTML += `<p><em>You already collected the key from this room.</em></p>`;
+      }
+    
+      // Show collected keys
+      const collectedKeys = Array.from(this.lockPuzzle.keysCollected)
+        .map(id => `Key ${id}`)
+        .join(", ");
+      outputDiv.innerHTML += `<p><strong>Keys Collected:</strong> [${collectedKeys}]</p>`;
 
       const existingMap = document.getElementById("game-map");
       if(!existingMap){
@@ -50,20 +65,24 @@ class Game {
       }
       movesHtml += "</ul>";
       outputDiv.innerHTML += movesHtml;
-      
+    
       // Show PDA stack for educational purposes.
       outputDiv.innerHTML += `<p><em>PDA Stack:</em> [${this.pda.getStack().join(", ")}]</p>`;
 
       // Check for win or loss conditions.
       if (this.visited.size === this.graph.numRooms) {
-        outputDiv.innerHTML += `<p style="color: lightgreen; font-weight: bold;">Congratulations! You have visited all the rooms and escaped!</p>`;
-        this.gameOver = true;
-        return;
-      } else if (availableMoves === 0) {
-        outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">You are stuck! All doors are locked. You lost the game!</p>`;
-        this.gameOver = true;
-        return;
-      }
+        if (this.lockPuzzle.isOrderCorrect()){
+                outputDiv.innerHTML += `<p style="color: lightgreen; font-weight: bold;">Vault unlocked! You correctly followed the Hamiltonian path!</p>`;
+              } else {
+                outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">Vault rejected the keys. The order was incorrect.</p>`;
+              }
+              this.gameOver = true;
+              return;
+            } else if (availableMoves === 0) {
+              outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">You are stuck! All doors are locked. You lost the game!</p>`;
+              this.gameOver = true;
+              return;
+            }
       
       // Attach event listeners for available moves.
       document.querySelectorAll(".move-btn").forEach(button => {
@@ -86,6 +105,7 @@ class Game {
       this.pda.transition(`move-${this.currentRoom}->${roomID}`);
       this.currentRoom = roomID;
       this.visited.add(roomID);
+      this.lockPuzzle.collectKey(roomID);
       // If all rooms are visited, notify win.
       if (this.visited.size === this.graph.numRooms) {
         alert("Congratulations! You have navigated through all the rooms!");

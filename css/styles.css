@@ -76,3 +76,12 @@ body {
     padding: 10px;
     border: 2px dashed #666;
   }
+  .key-item {
+    padding: 4px;
+    background: gold;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 2px;
+    font-weight: bold;
+  }
+  
