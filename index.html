@@ -8,22 +8,32 @@
 <body>
   <div id="game-container">
     <h1>Escape Room Game</h1>
-    <div id="game-output">
-      <p>Welcome! Click "Start Game" to begin your escape.</p>
-      <div id="game-map"></div>
-    </div>
-    
-    <div id = "level-select">
-      <h2>Select a Level</h2>
-      <button onclick="startLevel(1)">Level 1 (5 Rooms)</button>
-      <button onclick="startLevel(2)">Level 2 (10 Rooms)</button>
-      <button onclick="startLevel(3)">Level 3 (20 Rooms)</button>
+
+    <!-- Level Select -->
+    <div id="level-select">
+      <h2>Start</h2>
+      <button id="btn-level-1">Level 1 (5 Rooms)</button>
+      <button id="btn-level-2">Level 2 (10 Rooms)</button>
+      <button id="btn-level-3">Level 3 (20 Rooms)</button>
+
     </div>
 
+    <!-- Game Output -->
+    <div id="game-output">
+      <p>Welcome! Click a level to begin your escape.</p>
+      <div id="game-map"></div>
+    </div>
+
+    <!-- Key Inventory -->
+    <div id="key-inventory" style="margin-top: 20px;">
+      <h3>Keys Collected</h3>
+      <div id="key-list" style="display: flex; flex-wrap: wrap;"></div>
+    </div>
+
+    <!-- Controls -->
     <div id="controls">
       <button id="btn-restart" style="display: none;">Restart Game</button>
     </div>
-
   </div>
 
   <!-- Main JavaScript entry point -->

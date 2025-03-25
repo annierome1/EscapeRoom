@@ -1,22 +1,27 @@
 import { Game } from "./game.js";
 
+const LEVELS = {
+  1: { rooms: 5, theme: "ruins"},
+  2: { rooms: 10, theme: "sciFi"},
+  3: { rooms: 20, theme: "forest"}
+};
+
 let currentGame = null;
 
-window.addEventListener("DOMContentLoaded", () => {
-  // Hook restart button
-  document.getElementById("btn-restart").addEventListener("click", () => {
-    window.location.reload();
-  });
+function startLevel(levelNum) {
+  const { rooms, theme } = LEVELS[levelNum];
+  document.getElementById("level-select").style.display = "none";
+  document.getElementById("btn-restart").style.display = "inline-block";
 
-  // Hook level select
-  window.startLevel = function(level) {
-    let numRooms = level === 1 ? 5 : level === 2 ? 10 : 20;
+  const game = new Game(rooms, theme);
+  game.start();
+  currentGame = game;
+}
 
-    document.getElementById("level-select").style.display = "none";
-    document.getElementById("game-output").style.display = "block";
-    document.getElementById("btn-restart").style.display = "inline-block";
+document.getElementById("btn-level-1").addEventListener("click", () => startLevel(1));
+document.getElementById("btn-level-2").addEventListener("click", () => startLevel(2));
+document.getElementById("btn-level-3").addEventListener("click", () => startLevel(3));
 
-    currentGame = new Game(numRooms);
-    currentGame.start();
-  };
+document.getElementById("btn-restart").addEventListener("click", () => {
+  location.reload();
 });

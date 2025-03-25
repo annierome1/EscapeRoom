@@ -1,10 +1,9 @@
- // ================================
+// ================================
 // Context-Free Grammar (CFG) Engine
 // ================================
 // This CFG dynamically generates room descriptions.
 // See Fitch & Friederici (2012) and ShaggyDev (2022) for details on generative grammars.
 
-//Add riddles for player to solve based on on CFG rules
 
 export class CFG {
     constructor() {

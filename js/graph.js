@@ -1,29 +1,39 @@
 import { CFG } from "./cfg.js"; // Ensure correct import
+import { THEMES, artifactSymbolMap } from "./symbols.js";
 // ===============================
 // Graph and Hamiltonian Path Setup
 // ===============================
 // The graph is constructed with a guaranteed Hamiltonian path (rooms 0 to n-1) and extra random edges,
 // simulating the NP-hard characteristics as discussed in Sara (n.d.) and Mayer & Wünch (2017).
+
+
 export class Graph {
-  constructor(numRooms) {
+  constructor(numRooms, themeKey = "ruins") {
     this.numRooms = numRooms;
+    this.theme = THEMES[themeKey];
     this.rooms = {};   // Room details
     this.edges = {};   // Adjacency list for room connections
     this.solutionPath = []; // The guaranteed Hamiltonian (solution) path
-    this.cfg = new CFG();
+    this.cfg = new CFG(this.theme.cfgRules);
     this.generateRooms();
     this.generateSolutionPath();
     this.addRandomEdges();
   }
+
   generateRooms() {
-    // Create room objects with CFG-generated descriptions.
+    const usedWords = [...this.theme.artifactWords];
     for (let i = 0; i < this.numRooms; i++) {
+      const word = usedWords[i % usedWords.length];
+      const symbol = artifactSymbolMap[word] || "❓";
+      const description = this.cfg.generate();
+
       this.rooms[i] = {
         id: i,
-        description: this.cfg.generate(),
+        description,
         key: {
           id: i,
-          symbol: `Key of Room ${i}`,
+          name: word.charAt(0).toUpperCase() + word.slice(1),
+          symbol,
           color: this.randomColor(),
           collected: false
         }
@@ -31,8 +41,8 @@ export class Graph {
       this.edges[i] = [];
     }
   }
+
   generateSolutionPath() {
-    // Create a linear Hamiltonian path from room 0 to room numRooms-1.
     for (let i = 0; i < this.numRooms; i++) {
       this.solutionPath.push(i);
       if (i < this.numRooms - 1) {
@@ -41,20 +51,19 @@ export class Graph {
       }
     }
   }
+
   addRandomEdges() {
-    // Add extra edges to increase the complexity of the puzzle.
-    // This extra connectivity mirrors NP-hard problem characteristics.
     for (let i = 0; i < this.numRooms; i++) {
       for (let j = i + 2; j < this.numRooms; j++) {
-        if (Math.random() < 0.3) { // 30% chance to add an extra connection
-          if (!this.edges[i].includes(j)) {
-            this.edges[i].push(j);
-            this.edges[j].push(i);
-          }
+        const alreadyConnected = this.edges[i].includes(j);
+        if (!alreadyConnected && Math.random() < 0.25) {
+          this.edges[i].push(j);
+          this.edges[j].push(i);
         }
       }
     }
   }
+
   randomColor() {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -68,4 +77,3 @@ export class Graph {
     return [...this.solutionPath];
   }
 }
-
