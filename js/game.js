@@ -1,7 +1,9 @@
 import { Graph } from "./graph.js";
 import { PDA } from "./pda.js";
-import { drawMap } from "./ui.js";
-import { LockPuzzle, PlayerInventory } from "./lock.js";
+import { drawMap } from './ui.js';
+import { PlayerInventory } from "./inventory.js";
+import { generateRoomDescription } from "./cfg.js"
+import { COLLECTIBLES_POOL } from "./collectibles.js"
 
 // ========================
 // Main Game Implementation
@@ -12,82 +14,96 @@ import { LockPuzzle, PlayerInventory } from "./lock.js";
 
 
 class Game {
-  constructor(numRooms, themeKey) {
-    this.graph = new Graph(numRooms, themeKey);
+  constructor(numRooms, onLevelComplete = null, hasNextLevel = null, inventroy = null) {
+    this.graph = new Graph(numRooms);
     this.pda = new PDA();
     this.lastRoom = null;
     this.currentRoom = 0;
     this.visited = new Set();
     this.visited.add(this.currentRoom);
     this.gameOver = false;
-    this.lockPuzzle = new LockPuzzle(this.graph.getHamiltonianPath());
-    this.lockPuzzle.collectKey(this.currentRoom);
+    this.onLevelComplete = onLevelComplete;
+    this.hasNextLevel = hasNextLevel;
     this.inventory = new PlayerInventory();
-  }
+  
 
-  start() {
-    const mapContainer = document.getElementById("game-map");
-    mapContainer.style.display = "block";
-    this.renderRoom();
-  }
+  const extendedPool = [...COLLECTIBLES_POOL];
+    while (extendedPool.length < numRooms) {
+      extendedPool.push(...COLLECTIBLES_POOL);
+    }
+    const shuffled = extendedPool.sort(() => Math.random() - 0.5);
+    const assignedCollectibles = shuffled.slice(0, numRooms);
+    const roomIDs = Object.keys(this.graph.rooms);
+    roomIDs.forEach((roomID, index) => {
+        const room = this.graph.rooms[roomID];
+        const key = room.key;
+        room.collectible = assignedCollectibles[index];
+        room.description = generateRoomDescription(key);
+});
 
-  renderVault() {
+    }      
+
+    start() {
+        let mapContainer = document.getElementById("game-map");
+        if (!mapContainer) {
+          mapContainer = document.createElement("div");
+          mapContainer.id = "game-map";
+          document.getElementById("game-output").appendChild(mapContainer);
+        }
+        mapContainer.style.display = "block";
+        this.renderRoom();
+        //draw graph upon level intialization
+        drawMap(this);
+      }
+      
+
+  levelEnd() {
     const outputDiv = document.getElementById("game-output");
-    outputDiv.innerHTML = `<h2>🔐 Vault Summary</h2>`;
+    outputDiv.innerHTML = `<h2>Collectibles Found!</h2>`;
 
-    const keys = Array.from(this.lockPuzzle.keysCollected).map(keyID => {
-      const key = this.graph.rooms[keyID]?.key;
-      const name = key?.name || `Key ${keyID}`;
-      const color = key?.color || "#666";
-      const symbol = key?.symbol || "❓";   q
-    }).join("");
+    const keys = this.inventory.getKeys().map(collectedKey => {
+        const name = collectedKey?.name || "Unknown Key";
+        const color = collectedKey?.color || "#666";
+        const symbol = collectedKey?.symbol || "❓";
+        return `<div class="key-item" style="background-color: ${color};">
+                  ${symbol} ${name}
+                </div>`;
+      }).join("");
+      
 
+    outputDiv.innerHTML += `<div style="display: flex; flex-wrap: wrap; gap: 10px;">${keys}</div>`;
+    outputDiv.innerHTML += `<p>You have successfully completed the Hamiltonian Path by visiting every room exactly once!</p>`;
+ 
+
+  
+  if (this.hasNextLevel && this.hasNextLevel()) {
     outputDiv.innerHTML += `
-      <div style="display: flex; flex-wrap: wrap; gap: 10px;">${keys}</div>
+      <button id="btn-next-level" style="margin-top: 20px;">Next Level</button>
     `;
-
-    const correct = this.lockPuzzle.isOrderCorrect();
-    outputDiv.innerHTML += correct
-      ? `<p style="color: lightgreen; font-weight: bold;">Vault unlocked! You correctly followed the Hamiltonian path!</p>`
-      : `<p style="color: tomato; font-weight: bold;">Vault rejected the keys. The order was incorrect.</p>`;
-
-    const totalPaths = this.factorial(this.graph.numRooms);
-    outputDiv.innerHTML += `
-      <p><strong>Did you know?</strong> There were <span style="color: gold;">${totalPaths.toLocaleString()}</span> possible paths through this graph.</p>
-      <p>You found one valid Hamiltonian path.</p>
-    `;
+    const btn = document.getElementById("btn-next-level");
+    btn.addEventListener("click", () => {
+      if (this.onLevelComplete) {
+        this.onLevelComplete(this.inventory); //Pass player inventory to next level
+      }
+    });
+  } else {
+    outputDiv.innerHTML += `<p style="margin-top: 20px;">🎉 You've completed all levels!</p>`;
   }
+}
 
-  factorial(n) {
-    return n <= 1 ? 1 : n * this.factorial(n - 1);
-  }
 
-  renderRoom() {
+
+renderRoom() {
     const room = this.graph.rooms[this.currentRoom];
     const outputDiv = document.getElementById("game-output");
-    outputDiv.innerHTML = `<p>${room.description}</p><div id = "game-map" style = "display: block;"></div>`;
+    outputDiv.innerHTML = `<p>${room.description}</p><div id="game-map" style="display: block;"></div>`;
 
-    if (!this.lockPuzzle.keysCollected.has(this.currentRoom)) {
-      outputDiv.innerHTML += `
-        <p><strong>You found a key:</strong> <span style="color: gold;">${room.key.symbol} ${room.key.name}</span></p>
-      `;
-    } else {
-      outputDiv.innerHTML += `<p><em>You already collected the key from this room.</em></p>`;
-    }
+    const key = room.key;
+    outputDiv.innerHTML += `
+      <p><strong>You found a collectible:</strong> <span style="color: gold;">${key.symbol} ${key.name}</span></p>
+    `;
 
-    const keyListDiv = document.getElementById("key-list");
-    if (keyListDiv) {
-    const keys = Array.from(this.lockPuzzle.keysCollected);
-    keyListDiv.innerHTML = keys.length > 0
-        ? keys.map(keyID => {
-            const keyData = this.graph.rooms[keyID].key;
-            return `<div class="key-item" style="background-color: ${keyData.color};">
-                    ${keyData.symbol} ${keyData.name}
-                    </div>`;
-        }).join("")
-        : "<p>No keys collected yet.</p>";
-    }
-
+    this.inventory.collectKey(key);
 
     const existingMap = document.getElementById("game-map");
     if (!existingMap) {
@@ -101,7 +117,7 @@ class Game {
     let availableMoves = 0;
     for (const neighbor of this.graph.edges[this.currentRoom]) {
       if (this.visited.has(neighbor)) {
-        movesHtml += `<li><button disabled>Room ${neighbor} (Locked)</button></li>`;
+        movesHtml += `<li><button disabled>Room ${neighbor} (Visited)</button></li>`;
       } else {
         availableMoves++;
         movesHtml += `<li><button class="move-btn" data-room="${neighbor}">Go to Room ${neighbor}</button></li>`;
@@ -113,13 +129,13 @@ class Game {
     outputDiv.innerHTML += `<p><em>PDA Stack:</em> [${this.pda.getStack().join(", ")}]</p>`;
 
     if (this.visited.size === this.graph.numRooms) {
-      this.renderVault();
+      this.levelEnd();
       this.gameOver = true;
       return;
     }
 
     if (availableMoves === 0) {
-      outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">You are stuck! All doors are locked. You lost the game!</p>`;
+      outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">You are stuck! All doors are visited. You lost the game!</p>`;
       this.gameOver = true;
       return;
     }
@@ -144,7 +160,6 @@ class Game {
     this.currentRoom = roomID;
     this.visited.add(roomID);
     const key = this.graph.rooms[this.currentRoom].key;
-    this.lockPuzzle.collectKey(roomID);
     this.inventory.collectKey(key);
     this.renderRoom();
   }

@@ -1,5 +1,5 @@
-import { CFG } from "./cfg.js"; // Ensure correct import
-import { THEMES, artifactSymbolMap } from "./symbols.js";
+import { COLLECTIBLES_POOL } from "./collectibles.js";
+import { generateRoomDescription } from "./cfg.js";
 // ===============================
 // Graph and Hamiltonian Path Setup
 // ===============================
@@ -8,32 +8,35 @@ import { THEMES, artifactSymbolMap } from "./symbols.js";
 
 
 export class Graph {
-  constructor(numRooms, themeKey = "ruins") {
+  constructor(numRooms) {
     this.numRooms = numRooms;
-    this.theme = THEMES[themeKey];
     this.rooms = {};   // Room details
     this.edges = {};   // Adjacency list for room connections
     this.solutionPath = []; // The guaranteed Hamiltonian (solution) path
-    this.cfg = new CFG(this.theme.cfgRules);
     this.generateRooms();
     this.generateSolutionPath();
     this.addRandomEdges();
   }
 
   generateRooms() {
-    const usedWords = [...this.theme.artifactWords];
+    const extendedPool = [...COLLECTIBLES_POOL];
+    while (extendedPool.length < this.numRooms) {
+      extendedPool.push(...COLLECTIBLES_POOL);
+    }
+    const shuffled = extendedPool.sort(() => Math.random() - 0.5);
+    const assignedCollectibles = shuffled.slice(0, this.numRooms);
+
     for (let i = 0; i < this.numRooms; i++) {
-      const word = usedWords[i % usedWords.length];
-      const symbol = artifactSymbolMap[word] || "❓";
-      const description = this.cfg.generate();
+      const key = assignedCollectibles[i];
+      const description = generateRoomDescription(key);
 
       this.rooms[i] = {
         id: i,
         description,
         key: {
           id: i,
-          name: word.charAt(0).toUpperCase() + word.slice(1),
-          symbol,
+          name: key.name,
+          symbol: key.symbol,
           color: this.randomColor(),
           collected: false
         }
@@ -43,20 +46,30 @@ export class Graph {
   }
 
   generateSolutionPath() {
-    for (let i = 0; i < this.numRooms; i++) {
-      this.solutionPath.push(i);
-      if (i < this.numRooms - 1) {
-        this.edges[i].push(i + 1);
-        this.edges[i + 1].push(i);
-      }
+    // Create an array of room indices
+    this.solutionPath = Array.from({ length: this.numRooms }, (_, i) => i);
+  
+    // Shuffle the array to randomize the Hamiltonian path
+    for (let i = this.solutionPath.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.solutionPath[i], this.solutionPath[j]] = [this.solutionPath[j], this.solutionPath[i]];
+    }
+  
+    // Create edges along the shuffled Hamiltonian path
+    for (let i = 0; i < this.solutionPath.length - 1; i++) {
+      const from = this.solutionPath[i];
+      const to = this.solutionPath[i + 1];
+      this.edges[from].push(to);
+      this.edges[to].push(from);
     }
   }
+  
 
   addRandomEdges() {
     for (let i = 0; i < this.numRooms; i++) {
       for (let j = i + 2; j < this.numRooms; j++) {
         const alreadyConnected = this.edges[i].includes(j);
-        if (!alreadyConnected && Math.random() < 0.25) {
+        if (!alreadyConnected && Math.random() < 0.4) {
           this.edges[i].push(j);
           this.edges[j].push(i);
         }

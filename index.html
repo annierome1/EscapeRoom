@@ -6,33 +6,25 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <div id="game-container">
+  <div id="start-screen">
+    <h1>🧠 NP-Complete Escape Room</h1>
+    <p>Welcome to a puzzle adventure based on computer science and logic!</p>
+    <button id="btn-start-game">Start Game</button>
+  </div>
+  <div id="game-container" style = "display: none;">
     <h1>Escape Room Game</h1>
-
-    <!-- Level Select -->
-    <div id="level-select">
-      <h2>Start</h2>
-      <button id="btn-level-1">Level 1 (5 Rooms)</button>
-      <button id="btn-level-2">Level 2 (10 Rooms)</button>
-      <button id="btn-level-3">Level 3 (20 Rooms)</button>
-
-    </div>
 
     <!-- Game Output -->
     <div id="game-output">
-      <p>Welcome! Click a level to begin your escape.</p>
+      <p>Welcome to the NP-Complete Escape Room! Complete each level to progress.</p>
       <div id="game-map"></div>
     </div>
 
-    <!-- Key Inventory -->
-    <div id="key-inventory" style="margin-top: 20px;">
-      <h3>Keys Collected</h3>
-      <div id="key-list" style="display: flex; flex-wrap: wrap;"></div>
-    </div>
 
     <!-- Controls -->
-    <div id="controls">
-      <button id="btn-restart" style="display: none;">Restart Game</button>
+    <div id="controls" style="margin-top: 20px;">
+      <button id="btn-restart-level" style="display: none;">Restart Level</button>
+      <button id="btn-restart-game" style="display: none;">Restart Game</button>
     </div>
   </div>
 
