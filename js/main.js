@@ -57,7 +57,6 @@ window.onload = () => {
     startLevel(1);
   });
 
-  // ✅ Add event listeners for restart buttons
   document.getElementById("btn-restart-level").addEventListener("click", () => {
     restartLevel();
   });
