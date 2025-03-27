@@ -14,7 +14,7 @@ import { COLLECTIBLES_POOL } from "./collectibles.js"
 
 
 class Game {
-  constructor(numRooms, onLevelComplete = null, hasNextLevel = null, inventroy = null) {
+  constructor(numRooms, onLevelComplete = null, hasNextLevel = null, playerInventory = null) {
     this.graph = new Graph(numRooms);
     this.pda = new PDA();
     this.lastRoom = null;
@@ -24,7 +24,8 @@ class Game {
     this.gameOver = false;
     this.onLevelComplete = onLevelComplete;
     this.hasNextLevel = hasNextLevel;
-    this.inventory = new PlayerInventory();
+    this.playerInventory =  playerInventory || new PlayerInventory();
+    this.currentAttemptInventory = new PlayerInventory();
   
 
   const extendedPool = [...COLLECTIBLES_POOL];
@@ -51,45 +52,93 @@ class Game {
           document.getElementById("game-output").appendChild(mapContainer);
         }
         mapContainer.style.display = "block";
+        const inventoryPanel = document.getElementById("player-inventory");
+        if (inventoryPanel) inventoryPanel.style.display = "block";
+
+        this.renderInventory();
         this.renderRoom();
         //draw graph upon level intialization
         drawMap(this);
       }
+
+    renderInventory() {
+        const container = document.getElementById("player-inventory");
+        
+        const inventoryDiv = document.getElementById("inventory-list");
+        if (!container || !inventoryDiv) return;
       
-
-  levelEnd() {
-    const outputDiv = document.getElementById("game-output");
-    outputDiv.innerHTML = `<h2>Collectibles Found!</h2>`;
-
-    const keys = this.inventory.getKeys().map(collectedKey => {
-        const name = collectedKey?.name || "Unknown Key";
-        const color = collectedKey?.color || "#666";
-        const symbol = collectedKey?.symbol || "❓";
-        return `<div class="key-item" style="background-color: ${color};">
-                  ${symbol} ${name}
-                </div>`;
-      }).join("");
+        const permanentKeys = this.playerInventory.getKeys();
+        const attemptKeys = this.currentAttemptInventory.getKeys();
       
-
-    outputDiv.innerHTML += `<div style="display: flex; flex-wrap: wrap; gap: 10px;">${keys}</div>`;
-    outputDiv.innerHTML += `<p>You have successfully completed the Hamiltonian Path by visiting every room exactly once!</p>`;
- 
-
-  
-  if (this.hasNextLevel && this.hasNextLevel()) {
-    outputDiv.innerHTML += `
-      <button id="btn-next-level" style="margin-top: 20px;">Next Level</button>
-    `;
-    const btn = document.getElementById("btn-next-level");
-    btn.addEventListener("click", () => {
-      if (this.onLevelComplete) {
-        this.onLevelComplete(this.inventory); //Pass player inventory to next level
+        let html = "";
+      
+        // Always show completed inventory
+        html += "<h4>Your Inventory (Completed Levels)</h4>";
+        html += permanentKeys.length > 0
+          ? `<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+               ${permanentKeys.map(this.renderKey).join("")}
+             </div>`
+          : "<p>No collectibles yet.</p>";
+      
+        // Always show current level inventory
+        html += "<h4>Collectibles Found This Level</h4>";
+        html += attemptKeys.length > 0
+          ? `<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+               ${attemptKeys.map(this.renderKey).join("")}
+             </div>`
+          : "<p>None yet.</p>";
+      
+        inventoryDiv.innerHTML = html;
       }
-    });
-  } else {
-    outputDiv.innerHTML += `<p style="margin-top: 20px;">🎉 You've completed all levels!</p>`;
-  }
-}
+      
+      
+      
+      
+      renderKey(key) {
+        const name = key?.name || "Unknown";
+        const color = key?.color || "#666";
+        const symbol = key?.symbol || "❓";
+        return `<div class="key-item" style="background-color: ${color}; display: inline-block; padding: 5px 10px; margin: 4px; border-radius: 5px;">
+          ${symbol} ${name}
+        </div>`;
+      }
+
+
+      levelEnd() {
+        const outputDiv = document.getElementById("game-output");
+        outputDiv.innerHTML = `<h2>🎯 Collectibles Found This Level</h2>`;
+
+        const attemptKeys = this.currentAttemptInventory.getKeys();
+
+        this.renderInventory({ showPermanent: true });
+        // Hide the player inventory UI (bottom panel)
+        const inventoryPanel = document.getElementById("player-inventory");
+        if (inventoryPanel) inventoryPanel.style.display = "none";
+
+
+
+        // Transfer to permanent inventory ONLY if level completed
+        attemptKeys.forEach(key => this.playerInventory.collectKey(key));
+
+        outputDiv.innerHTML += `
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            ${attemptKeys.map(this.renderKey).join("")}
+            </div>
+            <p>You have successfully completed the Hamiltonian Path by visiting every room exactly once!</p>
+        `;
+
+        if (this.hasNextLevel && this.hasNextLevel()) {
+            outputDiv.innerHTML += `<button id="btn-next-level" style="margin-top: 20px;">Next Level</button>`;
+            const btn = document.getElementById("btn-next-level");
+            btn.addEventListener("click", () => {
+            if (this.onLevelComplete) {
+                this.onLevelComplete();
+            }
+            });
+        } else {
+            outputDiv.innerHTML += `<p style="margin-top: 20px;">🎉 You've completed all levels!</p>`;
+        }
+        }
 
 
 
@@ -99,12 +148,15 @@ renderRoom() {
     outputDiv.innerHTML = `<p>${room.description}</p><div id="game-map" style="display: block;"></div>`;
 
     const key = room.key;
+    this.currentAttemptInventory.collectKey(key);
     outputDiv.innerHTML += `
       <p><strong>You found a collectible:</strong> <span style="color: gold;">${key.symbol} ${key.name}</span></p>
     `;
 
-    this.inventory.collectKey(key);
-
+    
+    this.renderInventory();
+    const inventoryPanel = document.getElementById("player-inventory");
+    if (inventoryPanel) inventoryPanel.style.display = "block";
     const existingMap = document.getElementById("game-map");
     if (!existingMap) {
       const mapDiv = document.createElement("div");
@@ -160,7 +212,7 @@ renderRoom() {
     this.currentRoom = roomID;
     this.visited.add(roomID);
     const key = this.graph.rooms[this.currentRoom].key;
-    this.inventory.collectKey(key);
+    this.currentAttemptInventory.collectKey(key);
     this.renderRoom();
   }
 }

@@ -26,7 +26,12 @@ function startLevel(levelNum) {
 
   if (!playerInventory) {
     playerInventory = new PlayerInventory();
+    console.log("[INIT] Created new playerInventory");
+  } else {
+    console.log("[LOAD] Reusing existing playerInventory");
   }
+
+  console.log("[START LEVEL]", levelNum, "Current Inventory:", playerInventory.getKeys());
   
 
   const game = new Game(rooms, onLevelComplete, hasNextLevel, playerInventory);
@@ -34,10 +39,10 @@ function startLevel(levelNum) {
   currentGame = game;
 }
 
-function onLevelComplete(inventory) {
-  playerInventory = inventory; // Carry inventory over to next level
+function onLevelComplete(playerInventory) {
   startLevel(currentLevel + 1);
 }
+
 
 function restartLevel() {
   startLevel(currentLevel);

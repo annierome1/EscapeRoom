@@ -27,16 +27,15 @@ export class Graph {
     const assignedCollectibles = shuffled.slice(0, this.numRooms);
 
     for (let i = 0; i < this.numRooms; i++) {
-      const key = assignedCollectibles[i];
-      const description = generateRoomDescription(key);
-
+      const collectible = assignedCollectibles[i];
+      const uniqueKeyID = `${Date.now()}-${Math.random()}`; // Globally unique string ID
+    
       this.rooms[i] = {
         id: i,
-        description,
         key: {
-          id: i,
-          name: key.name,
-          symbol: key.symbol,
+          id: uniqueKeyID, 
+          name: collectible.name,
+          symbol: collectible.symbol,
           color: this.randomColor(),
           collected: false
         }
@@ -46,16 +45,19 @@ export class Graph {
   }
 
   generateSolutionPath() {
-    // Create an array of room indices
-    this.solutionPath = Array.from({ length: this.numRooms }, (_, i) => i);
+    // Create an array of room indices starting from 1 to numRooms - 1 (excluding 0)
+    const remaining = Array.from({ length: this.numRooms - 1 }, (_, i) => i + 1);
   
-    // Shuffle the array to randomize the Hamiltonian path
-    for (let i = this.solutionPath.length - 1; i > 0; i--) {
+    // Shuffle the remaining nodes
+    for (let i = remaining.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [this.solutionPath[i], this.solutionPath[j]] = [this.solutionPath[j], this.solutionPath[i]];
+      [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
     }
   
-    // Create edges along the shuffled Hamiltonian path
+    // Prepend 0 to ensure the path starts at room 0 (possibly change to allow user to choose which room they start at)
+    this.solutionPath = [0, ...remaining];
+  
+    // Create edges along the Hamiltonian path
     for (let i = 0; i < this.solutionPath.length - 1; i++) {
       const from = this.solutionPath[i];
       const to = this.solutionPath[i + 1];
@@ -63,6 +65,7 @@ export class Graph {
       this.edges[to].push(from);
     }
   }
+  
   
 
   addRandomEdges() {

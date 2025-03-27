@@ -2,12 +2,13 @@ export class PlayerInventory {
   constructor(existingKeys = []) {
     this.keys = [...existingKeys]; 
   }
-
+  //unique key
   collectKey(key) {
-    if (!this.hasKey(key.id)) {
+    if (!this.keys.some(k => k.id === key.id)) {
       this.keys.push(key);
     }
   }
+  
 
   getKeys() {
     return this.keys;
