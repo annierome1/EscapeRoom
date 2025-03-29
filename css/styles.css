@@ -14,15 +14,7 @@ body {
     margin: 0;
     padding: 20px;
   }
-  
-  #game-container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #333;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px #000;
-  }
+
   
   #game-map {
     display: none;
@@ -120,3 +112,78 @@ body {
   .hidden {
     display: none;
   }
+
+  #game-container {
+    min-height: 100vh;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease-in-out;
+  }
+  
+
+
+  #start-screen {
+    text-align: center;
+    padding: 40px 20px;
+    color: white;
+  }
+  
+  .subtitle {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-bottom: 30px;
+  }
+  
+  .intro-text {
+    max-width: 700px;
+    margin: 0 auto 40px;
+    text-align: center;
+    line-height: 1.7;
+    font-size: 1.05rem;
+    color: #ddd;
+  }
+  
+  .how-to-play-box {
+    background-color: #222;
+    padding: 25px 30px;
+    border-radius: 12px;
+    max-width: 700px;
+    margin: 0 auto 30px;
+    text-align: left;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+  }
+  
+  .how-to-play-box h3 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #f9f9f9;
+  }
+  
+  .how-to-play-box ul {
+    padding-left: 20px;
+    line-height: 1.6;
+    color: #ccc;
+  }
+  
+  .how-to-play-box li {
+    margin-bottom: 10px;
+  }
+  
+  .start-btn {
+    background-color: #6a5acd;
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .start-btn:hover {
+    background-color: #5848c2;
+  }
+  

@@ -1,63 +1,74 @@
-import { COLLECTIBLES_POOL } from "./collectibles.js";
-import { generateRoomDescription } from "./cfg.js";
 // ===============================
 // Graph and Hamiltonian Path Setup
 // ===============================
 // The graph is constructed with a guaranteed Hamiltonian path (rooms 0 to n-1) and extra random edges,
 // simulating the NP-hard characteristics as discussed in Sara (n.d.) and Mayer & Wünch (2017).
 
+import { LEVEL_COLLECTIBLES } from "./collectibles.js";
+import { ROOM_CFG } from "./cfg.js";
+
+
 
 export class Graph {
-  constructor(numRooms) {
+  constructor(numRooms, levelNum) {
     this.numRooms = numRooms;
-    this.rooms = {};   // Room details
-    this.edges = {};   // Adjacency list for room connections
-    this.solutionPath = []; // The guaranteed Hamiltonian (solution) path
+    this.levelNum = levelNum;
+    this.rooms = {};
+    this.edges = {};
+    this.solutionPath = []; //guranteed Hamiltonian (solution) path
+
     this.generateRooms();
     this.generateSolutionPath();
     this.addRandomEdges();
   }
 
   generateRooms() {
-    const extendedPool = [...COLLECTIBLES_POOL];
-    while (extendedPool.length < this.numRooms) {
-      extendedPool.push(...COLLECTIBLES_POOL);
+    // Assigns a collectible to each room using CFG-generated options 
+    const baseCollectibles = LEVEL_COLLECTIBLES[this.levelNum];
+    if (!baseCollectibles || baseCollectibles.length === 0) {
+      console.error(`No collectibles found for level ${levelNum}!`);
+      return;
     }
-    const shuffled = extendedPool.sort(() => Math.random() - 0.5);
+    const extendedPool = [...baseCollectibles];
+    while (extendedPool.length < this.numRooms && baseCollectibles.length > 0) {
+      extendedPool.push(...baseCollectibles);
+    }
+    // Shuffle and assign collectibles randomly
+    const shuffled = extendedPool.sort(() => Math.random() - 0.7);
     const assignedCollectibles = shuffled.slice(0, this.numRooms);
-
-    for (let i = 0; i < this.numRooms; i++) {
-      const collectible = assignedCollectibles[i];
-      const uniqueKeyID = `${Date.now()}-${Math.random()}`; // Globally unique string ID
     
+  
+    for (let i = 0; i < this.numRooms; i++) {
+      this.edges[i] = []; // adjacency list initialization
+
+      const collectible = assignedCollectibles[i];
+      const uniqueKeyID = `${Date.now()}-${Math.random()}`;
+
+      // Store room details including its collectible key
       this.rooms[i] = {
         id: i,
         key: {
-          id: uniqueKeyID, 
+          id: uniqueKeyID,
           name: collectible.name,
           symbol: collectible.symbol,
           color: this.randomColor(),
           collected: false
         }
       };
-      this.edges[i] = [];
     }
   }
 
   generateSolutionPath() {
-    // Create an array of room indices starting from 1 to numRooms - 1 (excluding 0)
+    // // Create a Hamiltonian path
     const remaining = Array.from({ length: this.numRooms - 1 }, (_, i) => i + 1);
-  
-    // Shuffle the remaining nodes
+    // Shuffle remaining rooms
     for (let i = remaining.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
     }
-  
-    // Prepend 0 to ensure the path starts at room 0 (possibly change to allow user to choose which room they start at)
     this.solutionPath = [0, ...remaining];
-  
-    // Create edges along the Hamiltonian path
+
+    //Connect each consecutive pair in the path to form a chain
     for (let i = 0; i < this.solutionPath.length - 1; i++) {
       const from = this.solutionPath[i];
       const to = this.solutionPath[i + 1];
@@ -65,16 +76,15 @@ export class Graph {
       this.edges[to].push(from);
     }
   }
-  
-  
 
   addRandomEdges() {
+    // Add random edges for complexity
     for (let i = 0; i < this.numRooms; i++) {
       for (let j = i + 2; j < this.numRooms; j++) {
         const alreadyConnected = this.edges[i].includes(j);
-        if (!alreadyConnected && Math.random() < 0.4) {
+        if (!alreadyConnected && Math.random() < 0.3) { //30% chance of random edge generated
           this.edges[i].push(j);
-          this.edges[j].push(i);
+          this.edges[j].push(i);  // Add undirected edge with 30% chance
         }
       }
     }
@@ -82,11 +92,7 @@ export class Graph {
 
   randomColor() {
     const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    return '#' + Array.from({ length: 6 }, () => letters[Math.floor(Math.random() * 16)]).join('');
   }
 
   getHamiltonianPath() {

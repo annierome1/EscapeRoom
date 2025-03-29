@@ -1,4 +1,5 @@
 import { Game } from "./game.js";
+import { setupHomepage } from './home.js';
 import { PlayerInventory } from "./inventory.js";
 
 let currentLevel = 1;
@@ -11,52 +12,46 @@ const LEVELS = {
   3: { rooms: 20 }
 };
 
+const hasNextLevel = () => LEVELS[currentLevel + 1] !== undefined;
+
 function startLevel(levelNum) {
   currentLevel = levelNum;
   const { rooms } = LEVELS[levelNum];
 
-  const levelSelect = document.getElementById("level-select");
-  if (levelSelect) levelSelect.style.display = "none";
-
-  document.getElementById("btn-restart-level").style.display = "inline-block";
-  document.getElementById("btn-restart-game").style.display = "inline-block";
-
-  const hasNextLevel = () => LEVELS[currentLevel + 1] !== undefined;
-
-
   if (!playerInventory) {
+    console.log("[INIT] Creating new playerInventory");
     playerInventory = new PlayerInventory();
-    console.log("[INIT] Created new playerInventory");
   } else {
     console.log("[LOAD] Reusing existing playerInventory");
   }
 
-  console.log("[START LEVEL]", levelNum, "Current Inventory:", playerInventory.getKeys());
-  
+  console.log(`[START LEVEL] ${levelNum} with ${rooms} rooms. Inventory:`, playerInventory.getKeys());
 
-  const game = new Game(rooms, onLevelComplete, hasNextLevel, playerInventory);
+  const game = new Game(rooms, levelNum, onLevelComplete, hasNextLevel, playerInventory);
   game.start();
   currentGame = game;
 }
 
-function onLevelComplete(playerInventory) {
-  startLevel(currentLevel + 1);
+function onLevelComplete(updatedInventory) {
+  playerInventory = updatedInventory; // Carry over inventory
+  if (hasNextLevel()) {
+    startLevel(currentLevel + 1);
+  } else {
+    console.log("🎉 All levels complete!");
+  }
 }
-
 
 function restartLevel() {
   startLevel(currentLevel);
 }
 
 function restartGame() {
-  playerInventory = null; // Reset inventory for new game
+  playerInventory = null;
   startLevel(1);
 }
 
-
 window.onload = () => {
-  // Start Game button
-  document.getElementById("btn-start-game").addEventListener("click", () => {
+  setupHomepage(() => {
     document.getElementById("start-screen").style.display = "none";
     document.getElementById("game-container").style.display = "block";
     startLevel(1);
@@ -70,5 +65,3 @@ window.onload = () => {
     restartGame();
   });
 };
-
-

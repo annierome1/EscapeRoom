@@ -7,11 +7,24 @@
 </head>
 <body>
   <div id="start-screen">
-    <h1>🧠 NP-Complete Escape Room</h1>
-    <p>Welcome to a puzzle adventure based on computer science and logic!</p>
-    <button id="btn-start-game">Start Game</button>
+    <h1>NP-Complete Escape Room</h1>
+    <p class="subtitle">Welcome to an escape room based on computer science and logic!</p>
+
+    <div class="intro-text">
+      <p>Welcome, adventurer! You're about to embark on a journey through three mysterious worlds.</p>
+      <p>Each level brings a distinct theme, unique collectibles, and a new maze.</p>
+      <p>You must navigate through each room to find your way out — but be careful, the doors lock behind you!</p>
+    </div>
+
+    <div id="how-to-play" class="how-to-play-box">
+      <h3>How to Play</h3>
+      <ul></ul> 
+    </div>
+
+    <button id="btn-start-game" class="start-btn">Start Game</button>
   </div>
-  <div id="game-container" style = "display: none;">
+
+  <div id="game-container" style="display: none;">
     <h1>Escape Room Game</h1>
 
     <!-- Game Output -->
@@ -20,13 +33,10 @@
       <div id="game-map"></div>
     </div>
 
-    
     <div id="player-inventory" style="margin-top: 20px;">
       <h3>Your Inventory</h3>
       <div id="inventory-list">No collectibles yet.</div>
     </div>
-    
-
 
     <!-- Controls -->
     <div id="controls" style="margin-top: 20px;">
