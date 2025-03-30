@@ -1,4 +1,10 @@
-// cfg.js
+//cfg.js
+// ================================
+// Context-Free Grammar (CFG) Engine
+// ================================
+// This CFG dynamically generates room descriptions.
+// See Fitch & Friederici (2012) and ShaggyDev (2022) for details on generative grammars.
+// This CFG dynamically generates room descriptions.
 
 export const ROOM_CFG = {
   S: {
