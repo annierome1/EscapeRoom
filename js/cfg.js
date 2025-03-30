@@ -1,10 +1,4 @@
-//cfg.js
-// ================================
-// Context-Free Grammar (CFG) Engine
-// ================================
-// This CFG dynamically generates room descriptions.
-// See Fitch & Friederici (2012) and ShaggyDev (2022) for details on generative grammars.
-// This CFG dynamically generates room descriptions.
+// cfg.js
 
 export const ROOM_CFG = {
   S: {
@@ -23,6 +17,26 @@ export const ROOM_CFG = {
     ClockworkLabyrinth: [
       "You arrive in a <adjective> <place> of shifting gears. <description> A <item> glints in the machinery.",
       "A <adjective> <place> of ticking cogs surrounds you. <description> There's a <item> near the whirring pistons."
+    ]
+  },
+
+  // Description alternatives for each level theme.
+  description: {
+    default: [
+      "The air hums with quiet potential.",
+      "A sense of timeless wonder fills the space."
+    ],
+    EnchantedGardens: [
+      "The gentle fragrance of blooming flora envelops you.",
+      "Whispers of nature and magic intertwine in the air."
+    ],
+    TheArchive: [
+      "Dusty memories and forgotten lore linger in every corner.",
+      "Ancient secrets and worn pages beckon you closer."
+    ],
+    ClockworkLabyrinth: [
+      "The rhythmic ticking of gears creates an eerie symphony.",
+      "Mechanical precision and ceaseless motion permeate the space."
     ]
   },
 
@@ -56,12 +70,14 @@ export const ROOM_CFG = {
   }
 };
 
+// Simple random picker.
 const pickFrom = list => list[Math.floor(Math.random() * list.length)];
 
+// Mapping level numbers to theme keys.
 export const LEVEL_THEME_MAP = {
-  1: "EnchantedGardens",    
-  2: "TheArchive",      
-  3: "ClockworkLabyrinth"    
+  1: "EnchantedGardens",      // Level 1: Enchanted Gardens
+  2: "TheArchive",            // Level 2: The Archive
+  3: "ClockworkLabyrinth"     // Level 3: Clockwork Labyrinth
 };
 
 export const generateRoomDescription = (collectible, level = 1) => {
@@ -71,6 +87,7 @@ export const generateRoomDescription = (collectible, level = 1) => {
 
   // Determine the theme based on the provided level.
   const themeKey = LEVEL_THEME_MAP[level] || "default";
+  console.log(`Generating room for level ${level} using theme: ${themeKey}`);
 
   // Retrieve the scenario pool for the determined theme.
   const scenarioPool = ROOM_CFG.S[themeKey] || ROOM_CFG.S.default;
@@ -86,8 +103,8 @@ export const generateRoomDescription = (collectible, level = 1) => {
   const place = pickFrom(placePool.length ? placePool : ROOM_CFG.place.default);
   const object = pickFrom(objectPool.length ? objectPool : ROOM_CFG.object.default);
 
-  // Build a level-specific description string that explicitly mentions the theme.
-  const descStr = `The air hums with the mystique of ${themeKey.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}.`;
+  // Randomly choose a description that explicitly matches the level's theme.
+  const descStr = pickFrom(ROOM_CFG.description[themeKey] || ROOM_CFG.description.default);
 
   // Replace placeholders in the chosen template.
   return template

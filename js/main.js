@@ -22,7 +22,6 @@ function ensureGameMapExists() {
     const gameOutput = document.getElementById("game-output");
     mapDiv = document.createElement("div");
     mapDiv.id = "game-map";
-    // Optionally set size, etc.
     gameOutput.appendChild(mapDiv);
   }
   return mapDiv;

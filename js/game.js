@@ -130,7 +130,7 @@ class Game {
           <p>You have successfully completed the path!</p>
         `;
       
-        // 🎯 Show map of the path taken
+        // Show map of the path taken
         const levelMap = document.createElement("div");
         levelMap.id = "level-map";
         levelMap.style.marginTop = "20px";
@@ -154,9 +154,9 @@ class Game {
             : "<p>No collectibles gathered overall.</p>";
       
           outputDiv.innerHTML += `
-            <h3 style="margin-top: 20px;">🧰 All Collectibles You've Gathered</h3>
+            <h3 style="margin-top: 20px;">All Collectibles You've Gathered</h3>
             ${finalCollectiblesHtml}
-            <p style="margin-top: 20px;">🎉 You've completed all levels!</p>
+            <p style="margin-top: 20px;">You've completed all levels!</p>
           `;
         }
       }
@@ -168,12 +168,16 @@ class Game {
         // Get the main output container.
         const outputDiv = document.getElementById("game-output");
       
-        // Create or retrieve the room description container.
+        // Create or retrieve the room description container and insert it at the top.
         let roomDescDiv = document.getElementById("room-description");
         if (!roomDescDiv) {
           roomDescDiv = document.createElement("div");
           roomDescDiv.id = "room-description";
-          outputDiv.appendChild(roomDescDiv);
+          // Insert roomDescDiv as the first child of outputDiv.
+          outputDiv.insertBefore(roomDescDiv, outputDiv.firstChild);
+        } else {
+          // If it exists, move it to the top.
+          outputDiv.insertBefore(roomDescDiv, outputDiv.firstChild);
         }
       
         // Create or retrieve the collectible info container.
@@ -257,6 +261,7 @@ class Game {
           });
         });
       }
+      
       
       
   
