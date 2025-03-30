@@ -4,12 +4,9 @@
 // ================================
 // This CFG dynamically generates room descriptions.
 // See Fitch & Friederici (2012) and ShaggyDev (2022) for details on generative grammars.
-// Dahlskog & Togelius (2014) for theme-based expansions in game text generation
 // This CFG dynamically generates room descriptions.
 
-
 export const ROOM_CFG = {
-
   S: {
     default: [
       "You enter a <adjective> <place>. <description> On a pedestal lies the <item>.",
@@ -48,7 +45,7 @@ export const ROOM_CFG = {
     paper: ["library", "archive"]
   },
 
-  // Object expansion.
+  // Object expansions.
   object: {
     default: ["shadows", "echoes"],
     glass: ["broken beakers", "glass shards"],
@@ -61,48 +58,38 @@ export const ROOM_CFG = {
 
 const pickFrom = list => list[Math.floor(Math.random() * list.length)];
 
-export const generateRoomDescription = (collectible, theme = null) => {
+export const LEVEL_THEME_MAP = {
+  1: "EnchantedGardens",    
+  2: "TheArchive",      
+  3: "ClockworkLabyrinth"    
+};
+
+export const generateRoomDescription = (collectible, level = 1) => {
   if (!collectible || !collectible.name || !collectible.symbol) {
-    console.warn("[CFG WARNING] Malformed collectible:", collectible);
     return "You enter a room with strange, indescribable energy.";
   }
 
-  let themeSKey = "default";
-  if (theme && theme.name) {
-    // remove spaces/punctuation from theme.name
-    const normalized = theme.name.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
-    if (ROOM_CFG.S[normalized]) {
-      themeSKey = normalized;
-    }
-  }
+  // Determine the theme based on the provided level.
+  const themeKey = LEVEL_THEME_MAP[level] || "default";
 
-  // Collect the expansions.
-  const scenarioPool = ROOM_CFG.S[themeSKey] || ROOM_CFG.S.default;
+  // Retrieve the scenario pool for the determined theme.
+  const scenarioPool = ROOM_CFG.S[themeKey] || ROOM_CFG.S.default;
   const template = pickFrom(scenarioPool);
-
-  // Use tags from the collectible to build adjective/place/object pools
   const tags = collectible.tags || [];
 
-  const adjectivePool = tags.flatMap(tag => ROOM_CFG.adjective[tag] || []).length
-    ? tags.flatMap(tag => ROOM_CFG.adjective[tag] || [])
-    : ROOM_CFG.adjective.default;
+  // Build pools for adjectives, places, and objects from collectible tags.
+  const adjectivePool = tags.flatMap(tag => ROOM_CFG.adjective[tag] || []);
+  const placePool = tags.flatMap(tag => ROOM_CFG.place[tag] || []);
+  const objectPool = tags.flatMap(tag => ROOM_CFG.object[tag] || []);
 
-  const placePool = tags.flatMap(tag => ROOM_CFG.place[tag] || []).length
-    ? tags.flatMap(tag => ROOM_CFG.place[tag] || [])
-    : ROOM_CFG.place.default;
+  const adjective = pickFrom(adjectivePool.length ? adjectivePool : ROOM_CFG.adjective.default);
+  const place = pickFrom(placePool.length ? placePool : ROOM_CFG.place.default);
+  const object = pickFrom(objectPool.length ? objectPool : ROOM_CFG.object.default);
 
-  const objectPool = tags.flatMap(tag => ROOM_CFG.object[tag] || []).length
-    ? tags.flatMap(tag => ROOM_CFG.object[tag] || [])
-    : ROOM_CFG.object.default;
+  // Build a level-specific description string that explicitly mentions the theme.
+  const descStr = `The air hums with the mystique of ${themeKey.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}.`;
 
-  const adjective = pickFrom(adjectivePool);
-  const place = pickFrom(placePool);
-  const object = pickFrom(objectPool);
-
-  const descStr = theme && theme.name
-    ? `The air hums with the essence of ${theme.name.toLowerCase()}.`
-    : "The air hums with quiet potential.";
-
+  // Replace placeholders in the chosen template.
   return template
     .replace("<adjective>", adjective)
     .replace("<place>", place)

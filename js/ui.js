@@ -10,8 +10,7 @@ export function drawMap(game, customContainerId = "game-map") {
     mapContainer = document.createElement("div");
     mapContainer.id = customContainerId;
     // Set basic size if needed
-    mapContainer.style.width = "400px";
-    mapContainer.style.height = "400px";
+
     gameOutput.appendChild(mapContainer);
   }
   
