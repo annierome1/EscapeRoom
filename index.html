@@ -29,8 +29,20 @@
 
     <!-- Game Output -->
     <div id="game-output">
-      <p>Welcome to the NP-Complete Escape Room! Complete each level to progress.</p>
-      <div id="game-map"></div>
+      <!-- Separate container for the current room description -->
+      <div id="room-description"></div>
+    
+      <!-- Container for "You found a collectible" messages -->
+      <div id="collectible-info"></div>
+    
+      <!-- The actual map container (preserves background) -->
+      <div id="game-map" style="display: block;"></div>
+    
+      <!-- Container for available exits -->
+      <div id="exits"></div>
+    
+      <!-- PDA stack info -->
+      <div id="pda-stack"></div>
     </div>
 
     <div id="player-inventory" style="margin-top: 20px;">

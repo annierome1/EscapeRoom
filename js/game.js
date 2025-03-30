@@ -1,3 +1,4 @@
+//game.js
 import { Graph } from "./graph.js";
 import { PDA } from "./pda.js";
 import { drawMap } from './ui.js';
@@ -112,7 +113,7 @@ class Game {
         const outputDiv = document.getElementById("game-output");
         outputDiv.innerHTML = `<h2>🎯 Collectibles Found This Level</h2>`;
       
-        // // Merge current level keys into permanent inventory
+        // Merge current level keys into permanent inventory
         const attemptKeys = this.currentAttemptInventory.getKeys();
         attemptKeys.forEach(key => this.playerInventory.collectKey(key));
       
@@ -121,6 +122,7 @@ class Game {
         const inventoryPanel = document.getElementById("player-inventory");
         if (inventoryPanel) inventoryPanel.style.display = "none";
       
+        // Show current level's collected keys
         outputDiv.innerHTML += `
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
             ${attemptKeys.map(this.renderKey).join("")}
@@ -128,16 +130,22 @@ class Game {
           <p>You have successfully completed the path!</p>
         `;
       
+        // 🎯 Show map of the path taken
+        const levelMap = document.createElement("div");
+        levelMap.id = "level-map";
+        levelMap.style.marginTop = "20px";
+        outputDiv.appendChild(levelMap);
+        drawMap(this, "level-map");
+      
         if (this.hasNextLevel && this.hasNextLevel()) {
-            outputDiv.innerHTML += `<button id="btn-next-level" style="margin-top: 20px;">Next Level</button>`;
-            const btn = document.getElementById("btn-next-level");
-            btn.addEventListener("click", () => {
-              if (this.onLevelComplete) {
-                this.onLevelComplete(this.playerInventory); //pass updated inventory
-              }
-            });
+          outputDiv.innerHTML += `<button id="btn-next-level" style="margin-top: 20px;">Next Level</button>`;
+          const btn = document.getElementById("btn-next-level");
+          btn.addEventListener("click", () => {
+            if (this.onLevelComplete) {
+              this.onLevelComplete(this.playerInventory);
+            }
+          });
         } else {
-          // show all collected items
           const finalKeys = this.playerInventory.getKeys();
           const finalCollectiblesHtml = finalKeys.length > 0
             ? `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
@@ -153,66 +161,107 @@ class Game {
         }
       }
       
-    renderRoom() {
-        // Display current room description, collectible, exits, and PDA stack
-      const room = this.graph.rooms[this.currentRoom];
-      const outputDiv = document.getElementById("game-output");
-      outputDiv.innerHTML = `<p>${room.description || ""}</p><div id="game-map" style="display: block;"></div>`;
-  
-      // Collect the room's key
-      const key = room.key;
-      this.currentAttemptInventory.collectKey(key);
-      outputDiv.innerHTML += `
-        <p><strong>You found a collectible:</strong> <span style="color: gold;">${key.symbol} ${key.name}</span></p>`;
-  
-      this.renderInventory();
-  
-      const existingMap = document.getElementById("game-map");
-      if (!existingMap) {
-        const mapDiv = document.createElement("div");
-        mapDiv.id = "game-map";
-        mapDiv.style.display = "block";
-        outputDiv.appendChild(mapDiv);
-      }
-
-      // Show valid exits
-      let movesHtml = "<p>Available Exits:</p><ul>";
-      let availableMoves = 0;
-      for (const neighbor of this.graph.edges[this.currentRoom]) {
-        if (this.visited.has(neighbor)) {
-          movesHtml += `<li><button disabled>Room ${neighbor} (Visited)</button></li>`;
-        } else {
-          availableMoves++;
-          movesHtml += `<li><button class="move-btn" data-room="${neighbor}">Go to Room ${neighbor}</button></li>`;
+      
+      
+      
+      renderRoom() {
+        // Get the main output container.
+        const outputDiv = document.getElementById("game-output");
+      
+        // Create or retrieve the room description container.
+        let roomDescDiv = document.getElementById("room-description");
+        if (!roomDescDiv) {
+          roomDescDiv = document.createElement("div");
+          roomDescDiv.id = "room-description";
+          outputDiv.appendChild(roomDescDiv);
         }
-      }
-      movesHtml += "</ul>";
-      outputDiv.innerHTML += movesHtml;
-      outputDiv.innerHTML += `<p><em>PDA Stack:</em> [${this.pda.getStack().join(", ")}]</p>`;
-  
-      // Check for game end conditions
-      if (this.visited.size === this.graph.numRooms) {
-        this.levelEnd();
-        this.gameOver = true;
-        return;
-      }
-      if (availableMoves === 0) {
-        outputDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">You are stuck! All doors are visited. You lost the game!</p>`;
-        this.gameOver = true;
-        return;
-      }
-  
-      document.querySelectorAll(".move-btn").forEach(button => {
-        button.addEventListener("click", (e) => {
-          const nextRoom = parseInt(e.target.getAttribute("data-room"));
-          this.moveToRoom(nextRoom);
-          drawMap(this);
+      
+        // Create or retrieve the collectible info container.
+        let collectibleDiv = document.getElementById("collectible-info");
+        if (!collectibleDiv) {
+          collectibleDiv = document.createElement("div");
+          collectibleDiv.id = "collectible-info";
+          outputDiv.appendChild(collectibleDiv);
+        }
+      
+        // Create or retrieve the exits container.
+        let exitsDiv = document.getElementById("exits");
+        if (!exitsDiv) {
+          exitsDiv = document.createElement("div");
+          exitsDiv.id = "exits";
+          outputDiv.appendChild(exitsDiv);
+        }
+      
+        // Create or retrieve the PDA stack container.
+        let pdaDiv = document.getElementById("pda-stack");
+        if (!pdaDiv) {
+          pdaDiv = document.createElement("div");
+          pdaDiv.id = "pda-stack";
+          outputDiv.appendChild(pdaDiv);
+        }
+      
+        // Get current room.
+        const room = this.graph.rooms[this.currentRoom];
+      
+        // Update room description.
+        roomDescDiv.innerHTML = `<p>${room.description || ""}</p>`;
+      
+        // Collect the room's key (collectible).
+        const key = room.key;
+        this.currentAttemptInventory.collectKey(key);
+        collectibleDiv.innerHTML = `
+          <p><strong>You found a collectible:</strong>
+            <span style="color: gold;">${key.symbol} ${key.name}</span>
+          </p>`;
+      
+        // Re-render inventory.
+        this.renderInventory();
+      
+        // Build available exits HTML.
+        let movesHtml = "<p>Available Exits:</p><ul>";
+        let availableMoves = 0;
+        for (const neighbor of this.graph.edges[this.currentRoom]) {
+          if (this.visited.has(neighbor)) {
+            movesHtml += `<li><button disabled>Room ${neighbor} (Visited)</button></li>`;
+          } else {
+            availableMoves++;
+            movesHtml += `<li><button class="move-btn" data-room="${neighbor}">Go to Room ${neighbor}</button></li>`;
+          }
+        }
+        movesHtml += "</ul>";
+        exitsDiv.innerHTML = movesHtml;
+      
+        // Update PDA stack info.
+        pdaDiv.innerHTML = `<p><em>PDA Stack:</em> [${this.pda.getStack().join(", ")}]</p>`;
+      
+        // Check for game end conditions.
+        if (this.visited.size === this.graph.numRooms) {
+          this.levelEnd();
+          this.gameOver = true;
+          return;
+        }
+        if (availableMoves === 0) {
+          exitsDiv.innerHTML += `<p style="color: tomato; font-weight: bold;">
+            You are stuck! All doors are visited. You lost the game!</p>`;
+          this.gameOver = true;
+          return;
+        }
+      
+        // Wire up the exit buttons.
+        document.querySelectorAll(".move-btn").forEach(button => {
+          button.addEventListener("click", (e) => {
+            const nextRoom = parseInt(e.target.getAttribute("data-room"));
+            this.moveToRoom(nextRoom);
+            // Redraw the map after moving.
+            drawMap(this);
+          });
         });
-      });
-    }
+      }
+      
+      
   
     moveToRoom(roomID) {
-        //// Handles room transitions and state updates
+        // Handles room transitions and state updates
       if (this.gameOver) return;
       if (!this.graph.edges[this.currentRoom].includes(roomID) || this.visited.has(roomID)) {
         alert("Invalid move!");
