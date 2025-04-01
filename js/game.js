@@ -32,7 +32,7 @@ class Game {
         roomIDs.forEach((roomID) => {
         const room = this.graph.rooms[roomID];
         const key = room.key;
-        room.description = generateRoomDescription(key);
+        room.description = generateRoomDescription(key, this.levelNum);
         });
       this.playerInventory = playerInventory || new PlayerInventory();
       this.currentAttemptInventory = new PlayerInventory();
