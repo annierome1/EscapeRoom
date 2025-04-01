@@ -5,6 +5,7 @@
 // This CFG dynamically generates room descriptions.
 // See Fitch & Friederici (2012) and ShaggyDev (2022) for details on generative grammars.
 // This CFG dynamically generates room descriptions.
+// Miller et al.,(2019) "Stories of the Town: Balancing Character Autonomy and Coherent Narrative in Procedurally Generated Worlds"
 
 export const ROOM_CFG = {
   S: {
@@ -13,26 +14,23 @@ export const ROOM_CFG = {
       "A <adjective> <place> unfolds, filled with <object>. You spot a <item> shimmering quietly."
     ],
 
-    // ~~~ Enchanted Gardens (Moonlit fantasy garden with lanterns, willows, lotus) ~~~
     EnchantedGardens: [
       "You step through an archway woven with ivy, emerging into a moonlit <place>. <description> A <item> glimmers by the willow trees.",
       "A hush falls over you as you pass under drooping branches in a misty <place>. <description> On a stepping stone near the lotus blossoms rests a <item>."
     ],
 
-    // ~~~ The Archive (Grand library with towering shelves, ancient tomes, candles) ~~~
     TheArchive: [
       "Towering columns and shelves of ancient tomes line this grand <place>. <description> A <item> lies on a carved pedestal near the center.",
       "You stand at the threshold of a vast <place>, candlelight flickering across worn volumes. <description> A <item> lies open on a reading desk."
     ],
 
-    // ~~~ Clockwork Labyrinth (Steampunk corridor with gears, clocks, glass tubes) ~~~
     ClockworkLabyrinth: [
       "You enter a gleaming <place> filled with glass capsules and intricate clock faces. <description> A <item> rests upon a whirring gear console.",
       "A labyrinth of polished brass and ticking machinery sprawls before you. <description> A <item> is displayed behind a glass cylinder."
     ]
   },
 
-  // Description alternatives for each level theme.
+  // Thematic descriptions
   description: {
     default: [
       "The air hums with quiet potential.",
@@ -82,31 +80,32 @@ export const ROOM_CFG = {
   }
 };
 
-// Simple random picker.
+
 const pickFrom = list => list[Math.floor(Math.random() * list.length)];
 
 // Mapping level numbers to theme keys.
 export const LEVEL_THEME_MAP = {
-  1: "EnchantedGardens",      // Level 1: Enchanted Gardens
-  2: "TheArchive",            // Level 2: The Archive
-  3: "ClockworkLabyrinth"     // Level 3: Clockwork Labyrinth
+  1: "EnchantedGardens",      
+  2: "TheArchive",            
+  3: "ClockworkLabyrinth"     
 };
 
+//Generate room description given collectible and level number
 export const generateRoomDescription = (collectible, level = 1) => {
   if (!collectible || !collectible.name || !collectible.symbol) {
     return "You enter a room with strange, indescribable energy.";
   }
 
-  // Determine the theme based on the provided level.
+  // Determine the theme based on the level
   const themeKey = LEVEL_THEME_MAP[level] || "default";
   console.log(`Generating room for level ${level} using theme: ${themeKey}`);
 
-  // Retrieve the scenario pool for the determined theme.
+  // Grab corresponding structure template
   const scenarioPool = ROOM_CFG.S[themeKey] || ROOM_CFG.S.default;
   const template = pickFrom(scenarioPool);
   const tags = collectible.tags || [];
 
-  // Build pools for adjectives, places, and objects from collectible tags.
+  // Build pools for adjectives, places, and objects from collectible tags
   const adjectivePool = tags.flatMap(tag => ROOM_CFG.adjective[tag] || []);
   const placePool = tags.flatMap(tag => ROOM_CFG.place[tag] || []);
   const objectPool = tags.flatMap(tag => ROOM_CFG.object[tag] || []);
@@ -115,10 +114,10 @@ export const generateRoomDescription = (collectible, level = 1) => {
   const place = pickFrom(placePool.length ? placePool : ROOM_CFG.place.default);
   const object = pickFrom(objectPool.length ? objectPool : ROOM_CFG.object.default);
 
-  // Base description for the theme.
+  // Default theme description
   const baseDesc = pickFrom(ROOM_CFG.description[themeKey] || ROOM_CFG.description.default);
 
-  // Define collectible-specific flavor phrases for each level theme.
+  // Text tied to specific tags in each theme, makes each description more collectible-specific
   const COLLECTIBLE_FLAVOR = {
     EnchantedGardens: {
       magic: [
@@ -172,20 +171,20 @@ export const generateRoomDescription = (collectible, level = 1) => {
     }
   };
 
-  // Look for a collectible-specific flavor phrase based on its tags.
+  // Look for tags
   let flavorText = "";
   const flavorMapping = COLLECTIBLE_FLAVOR[themeKey];
   if (flavorMapping) {
     for (let tag of tags) {
       if (flavorMapping[tag]) {
         flavorText = pickFrom(flavorMapping[tag]);
-        break; // Use the first matching flavor phrase.
+        break; // Use the first tag
       }
     }
   }
   const finalDesc = flavorText || baseDesc;
 
-  // Replace placeholders in the chosen template.
+  // Finally, fill in the template to generate the CFG
   return template
     .replace("<adjective>", adjective)
     .replace("<place>", place)
