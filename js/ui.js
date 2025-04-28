@@ -41,7 +41,12 @@ export function drawMap(game, customContainerId = "game-map") {
   svg.setAttribute("height", "400");
   mapContainer.appendChild(svg);
 
-  const centerX = 200, centerY = 200, radius = 150;
+  const containerWidth = mapContainer.clientWidth;
+const containerHeight = mapContainer.clientHeight;
+
+const centerX = containerWidth / 2;
+const centerY = containerHeight / 2;
+const radius = Math.min(containerWidth, containerHeight) / 2.5;
   const roomPositions = {};
   const numRooms = game.graph.numRooms;
   for (let i = 0; i < numRooms; i++) {
