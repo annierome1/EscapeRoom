@@ -41,7 +41,7 @@ export function drawMap(game, customContainerId = "game-map") {
   svg.setAttribute("height", "400");
   mapContainer.appendChild(svg);
 
-  const containerWidth = mapContainer.clientWidth;
+const containerWidth = mapContainer.clientWidth;
 const containerHeight = mapContainer.clientHeight;
 
 const centerX = containerWidth / 2;
