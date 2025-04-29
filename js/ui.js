@@ -36,17 +36,21 @@ export function drawMap(game, customContainerId = "game-map") {
   }
 
   const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("width", "400");
-  svg.setAttribute("height", "400");
-  mapContainer.appendChild(svg);
+const svg = document.createElementNS(svgNS, "svg");
+svg.setAttribute("viewBox", "0 0 400 400"); 
+svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+svg.style.width = "400px";  // <-- fixed for desktop
+svg.style.height = "400px"; 
+svg.style.maxWidth = "90%"; // <-- allow shrinking
+svg.style.maxHeight = "90%"; 
+svg.style.display = "block"; // remove any inline weirdness
+svg.style.margin = "0 auto"; // center it
+mapContainer.appendChild(svg);
 
-const containerWidth = mapContainer.clientWidth;
-const containerHeight = mapContainer.clientHeight;
 
-const centerX = containerWidth / 2;
-const centerY = containerHeight / 2;
-const radius = Math.min(containerWidth, containerHeight) / 2.5;
+  const centerX = 200, centerY = 200, radius = 150;
+
+
   const roomPositions = {};
   const numRooms = game.graph.numRooms;
   for (let i = 0; i < numRooms; i++) {
